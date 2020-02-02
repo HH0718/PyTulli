@@ -13,4 +13,4 @@ Change `config.example.ini` to `config.ini` and replace the variables/paths as n
 Run script.
 
 
-#use at your own risk!
+# USE AT YOUR OWN RISK!
