@@ -11,9 +11,13 @@ import paramiko as paramiko
 import pendulum
 import requests
 
+
 # Read config file
 config = configparser.ConfigParser()
 config.read('config.ini')
+
+DEBUG = config['MISC']['DEBUG']
+DAYS = int(config['MISC']['DAYS'])
 
 # Tautulli config
 API_KEY = config['TAUTULLI']['API_KEY']
@@ -44,27 +48,40 @@ def remove_movies(movie_path_list):
     """Deletes files in each `movie_path_List` and then removes the movie directory. Then logs status of movie files."""
     paths = movie_path_list
     sftp = ssh.open_sftp()
-    with open('movie_removed.log', 'a') as log_file:
+    with open('movie_removed.example.log', 'a') as log_file:
+        if DEBUG:
+            log_file.write(f"{'*' * 19}\n")
+            log_file.write(f"{'*' * 5}  DEBUG  {'*' * 5}\n")
+            log_file.write(f"{'*' * 19}\n\n")
+
         for path in paths:
             log_file.write(f"{'*' * 5}  {path}  {'*' * 5}\n")
-            single_path = f"{PLEX_MOVIE_ROOT}/{path}/"
+            single_path = os.path.join(PLEX_MOVIE_ROOT, path)
             files_in_movie_path = sftp.listdir(path=single_path)
 
             for file in files_in_movie_path:
+                if not DEBUG:
+                    try:
+                        sftp.remove(single_path + file)
+                        log_file.write(f"'{file}' successfully removed\n")
+                    except:  # Haven't figured out exceptions yet.
+                        log_file.write(f"Failed to remove '{file}'\n")
+                else:
+                        log_file.write(f"File '{file}' would have been removed\n")
+
+            if not DEBUG:
                 try:
-                    sftp.remove(single_path + file)
-                    log_file.write(f"'{file}' successfully removed\n")
+                    sftp.rmdir(single_path)
+                    log_file.write(f"'{single_path}' successfully removed\n")
+                    log_file.write("\n\n\n")
+
                 except:  # Haven't figured out exceptions yet.
-                    log_file.write(f"Failed to remove '{file}'\n")
-
-            try:
-                sftp.rmdir(single_path)
-                log_file.write(f"'{single_path}' successfully removed\n")
+                    log_file.write(f"Failed to remove {single_path}\n")
+                    log_file.write("\n\n\n")
+            else:
+                log_file.write(f"Folder '{single_path}', would have been removed\n")
                 log_file.write("\n\n\n")
 
-            except:  # Haven't figured out exceptions yet.
-                log_file.write(f"Failed to remove {single_path}\n")
-                log_file.write("\n\n\n")
 
     sftp.close()
 
@@ -113,8 +130,8 @@ def main():
 
     # Determine if movies are forgotten. If so, add to `forgotten_movies_list`.
     for movie in movies["response"]["data"]["data"]:
-        if (movie['play_count'] is not None and not_played_in_n_days(30, movie['last_played'])) or \
-                (movie['play_count'] is None and not_played_in_n_days(30, movie['added_at'])):
+        if (movie['play_count'] is not None and not_played_in_n_days(DAYS, movie['last_played'])) or \
+                (movie['play_count'] is None and not_played_in_n_days(DAYS, movie['added_at'])):
             forgotten_movies_list.append(movie)
             num_of_forgotten_movies += 1
     if num_of_forgotten_movies == 0:
@@ -139,3 +156,5 @@ def main():
     ssh.close()
 
     refresh_libraries_list()
+
+main()
