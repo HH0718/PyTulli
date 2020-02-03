@@ -27,13 +27,15 @@ API_ENDPOINT = config['TAUTULLI']['API_ENDPOINT']
 SERVER = config['PLEX_SERVER_SSH']['SERVER']
 PORT = config['PLEX_SERVER_SSH']['PORT']
 USERNAME = config['PLEX_SERVER_SSH']['USERNAME']
+PASSWORD = config['PLEX_SERVER_SSH']['PASSWORD']
 PLEX_MOVIE_ROOT = config['MISC']['PLEX_MOVIE_ROOT']
+SECTION_ID = config['MISC']['SECTION_ID']
 
 # connect to Plex Server via SSH
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 ssh.load_host_keys(os.path.expanduser(os.path.join("~", ".ssh", "known_hosts")))
-ssh.connect(SERVER, port=PORT, username=USERNAME, password="")
+ssh.connect(SERVER, port=PORT, username=USERNAME, password=PASSWORD)
 
 
 def refresh_libraries_list():
@@ -95,7 +97,7 @@ def not_played_in_n_days(days, last_played):
 
 def get_library_count():
     """Gets total count of movies in library"""
-    payload = {"apikey": API_KEY, "cmd": "get_library", "section_id": 1}
+    payload = {"apikey": API_KEY, "cmd": "get_library", "section_id": SECTION_ID}
     r = requests.get(API_ENDPOINT, params=payload)
     data = r.json()
 
@@ -106,7 +108,7 @@ def get_movie_library():
     """Returns dictionary of movie data in movie library."""
     refresh_libraries_list()
     movie_count = get_library_count()
-    payload = {"apikey": API_KEY, "cmd": "get_library_media_info", "section_id": 1, "length": movie_count}
+    payload = {"apikey": API_KEY, "cmd": "get_library_media_info", "section_id": SECTION_ID, "length": movie_count}
     r = requests.get(API_ENDPOINT, params=payload)
     data = r.json()
     return data
