@@ -10,6 +10,10 @@ from the Plex server.
 
 Change `config.example.ini` to `config.ini` and replace the variables/paths as needed.
 
+```
+pip install requirements.txt
+```
+
 Run script.
 
 
