@@ -1,7 +1,7 @@
 """Parses Tautulli video library for date added and play count, then directly deletes movies from Plex movie
 folders. """
 
-__author__ = '/r/Return_Foo_Bar'
+__author__ = '/u/Return_Foo_Bar'
 __version__ = '0.1'
 
 import configparser
@@ -10,7 +10,6 @@ import os
 import paramiko as paramiko
 import pendulum
 import requests
-
 
 # Read config file
 config = configparser.ConfigParser()
@@ -69,7 +68,7 @@ def remove_movies(movie_path_list):
                     except:  # Haven't figured out exceptions yet.
                         log_file.write(f"Failed to remove '{file}'\n")
                 else:
-                        log_file.write(f"File '{file}' would have been removed\n")
+                    log_file.write(f"File '{file}' would have been removed\n")
 
             if not DEBUG:
                 try:
@@ -83,7 +82,6 @@ def remove_movies(movie_path_list):
             else:
                 log_file.write(f"Folder '{single_path}', would have been removed\n")
                 log_file.write("\n\n\n")
-
 
     sftp.close()
 
@@ -158,5 +156,6 @@ def main():
     ssh.close()
 
     refresh_libraries_list()
+
 
 main()
