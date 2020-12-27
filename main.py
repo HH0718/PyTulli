@@ -37,14 +37,6 @@ ssh.load_host_keys(os.path.expanduser(os.path.join("~", ".ssh", "known_hosts")))
 ssh.connect(SERVER, port=PORT, username=USERNAME, password=PASSWORD)
 
 
-def refresh_libraries_list():
-    """Sends a command to refresh Tautulli's movie database"""
-    payload = {"apikey": API_KEY, "cmd": "refresh_libraries_list"}
-    requests.get(API_ENDPOINT, params=payload)
-
-    return None
-
-
 def remove_movies(movie_path_list):
     """Deletes files in each `movie_path_List` and then removes the movie directory. Then logs status of movie files."""
     paths = movie_path_list
@@ -93,31 +85,7 @@ def not_played_in_n_days(days, last_played):
         return True
 
 
-def get_library_count():
-    """Gets total count of movies in library"""
-    payload = {"apikey": API_KEY, "cmd": "get_library", "section_id": SECTION_ID}
-    r = requests.get(API_ENDPOINT, params=payload)
-    data = r.json()
 
-    return data["response"]["data"]['count']
-
-
-def get_movie_library():
-    """Returns dictionary of movie data in movie library."""
-    refresh_libraries_list()
-    movie_count = get_library_count()
-    payload = {"apikey": API_KEY, "cmd": "get_library_media_info", "section_id": SECTION_ID, "length": movie_count}
-    r = requests.get(API_ENDPOINT, params=payload)
-    data = r.json()
-    return data
-
-
-def get_metadata(rating_key):
-    """Returns dictionary of movie details"""
-    payload = {"apikey": API_KEY, "cmd": "get_metadata", "rating_key": rating_key}
-    r = requests.get(API_ENDPOINT, params=payload)
-    data = r.json()
-    return data
 
 
 def main():
