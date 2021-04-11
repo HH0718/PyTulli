@@ -1,20 +1,25 @@
-[TAUTULLI]
-API_ENDPOINT = "https://tautulli.jamesthrasher.io/api/v2"
-API_KEY = "72ec27e852a24214b9d56884310033ab"
-# Tautulli library 'section' for movies
-SECTION_ID = 1
+[servers]
+base_ip = "172.16.0.2"
 
+[servers.radarr]
+port = 7878
+api_key = "683a12d24ebd4eaf80b7ec6ca8ca02e6"
+api_route = "/api/v3"
+status_endpoint = "/system/status"
 
-[PLEX_SERVER_SSH]
-SERVER = "172.16.0.2"
-PORT = 22
-USERNAME = "admin"
-PASSWORD = ""
+[servers.sonarr]
+port = 8989
+api_key = "4cdf6b59d6754347a7b72592287e0c7d"
+api_route = "/api"
+status_endpoint = "/system/status"
 
-[MISC]
-# If `DEBUG`, movies will not be deleted but will log the files that would be if `DEBUG` is set to `False`
-DEBUG = true
-#Minimum number of days movie has not been watched to be deleted
-DAYS = 10
-# Root path for movies stored on Plex server
-PLEX_MOVIE_ROOT = "/mnt/FreeNAS/Movies"
+[servers.tautulli]
+port = 8181
+api_key = "72ec27e852a24214b9d56884310033ab"
+api_route = "/api/v2"
+status_param = "server_status"
+
+[servers.plex]
+port = 32400
+username = "preditechs"
+password = "2G7RgV3rjDhm"

@@ -1,61 +1,74 @@
-from movie import Movie
+import re
 
-from pytulli import config
+import pendulum
 import requests
 
 
 class Tautulli:
-    """The class to work with the Tautulli API"""
+    config_passed = False
+    movie_count = None
+    movie_list = []
 
-    def __init__(self):
-        self.movies = []
-        self.API_KEY = config.get("TAUTULLI.API_KEY")
-        self.API_ENDPOINT = config.get("TAUTULLI.API_ENDPOINT")
-        self.SECTION_ID = config.get("TAUTULLI.SECTION_ID")
-        self.movie_count = self._get_library_count()
+    def __init__(self, config: dict, BASE_URL, get_movies=False):
+        self.port = config.get('port', None)
+        self.api_key = config.get('api_key', None)
+        self.api_route = config.get('api_route', None)
+        self.base_url = BASE_URL
+        self.check_status()
+        self.get_movies() if get_movies else None
 
-    def _refresh_libraries_list(self):
-        """Sends a command to refresh Tautulli's movie database"""
-        payload = {"apikey": self.API_KEY, "cmd": "refresh_libraries_list"}
-        requests.get(self.API_ENDPOINT, params=payload)
-        self.movie_count = self._get_library_count()
-        return None
+    def check_status(self):
+        # print(f'port: {self.port} API Key: "{self.api_key}", Route: "{self.api_route}"')
 
-    def _get_library_count(self):
-        """Gets total count of movies in library"""
-        payload = {"apikey": self.API_KEY, "cmd": "get_library", "section_id": self.SECTION_ID}
-        r = requests.get(self.API_ENDPOINT, params=payload)
-        data = r.json()
-        return data["response"]["data"]['count']
+        payload = {"apikey": self.api_key, "cmd": "server_status"}
+        status = requests.request("get", f"{self.base_url}:{self.port}{self.api_route}", params=payload)
+        if status.status_code == 200:
+            print(status.json())
+            self.config_passed = True
 
-    def get_movie_library(self):
-        """Returns list of movies in Movie Object form from the library."""
-        self._refresh_libraries_list()
-        payload = {"apikey": self.API_KEY, "cmd": "get_library_media_info", "section_id": self.SECTION_ID,
-                   "length": self.movie_count, "refresh": True}
-        r = requests.get(self.API_ENDPOINT, params=payload)
-        data = r.json()
-        for movie in data["response"]["data"]["data"]:
-            self.movies.append(
-                Movie(movie['title'],
-                      movie['sort_title'],
-                      movie['rating_key'],
-                      movie['year'],
-                      movie['added_at'],
-                      movie['last_played'],
-                      movie['play_count']))
-        return self.movies
+        else:
+            self.config_passed = False
 
-    def get_metadata(self, rating_key):
-        """Returns dictionary of movie details"""
-        payload = {"apikey": self.API_KEY, "cmd": "get_metadata", "rating_key": rating_key}
-        r = requests.get(self.API_ENDPOINT, params=payload)
-        data = r.json()
-        return data
+    def get_movies(self):
+        if self.config_passed:
+            payload = {
+                "apikey": self.api_key, "cmd": "get_library_media_info", "section_id": 1,
+                "refresh": True, "length": 10000}
 
+            request = requests.request("get", f"{self.base_url}:{self.port}{self.api_route}", params=payload)
 
-if __name__ == "__main__":
-    tautulli = Tautulli()
-    library = tautulli.get_movie_library()
-    [print(f"{movie.title}, {movie.rating_key}") for movie in sorted(library, key=lambda x: x.sort_title)]
-    print(len(library))
+            request_json = request.json()
+            self.movie_count = request_json['response']['data']['recordsFiltered']
+            data = request_json['response']['data']['data']
+            [self.movie_list.append(movie) for movie in data]
+            return self.movie_list
+
+    def get_movie_details(self, rating_key):
+        if self.config_passed:
+            payload = {
+                "apikey": self.api_key, "cmd": "get_metadata", "rating_key": rating_key}
+
+            request = requests.request("get", f"{self.base_url}:{self.port}{self.api_route}", params=payload)
+            request_json = request.json()
+            movie_data = request_json['response']['data']
+            return movie_data
+
+    def get_ignored_movies(self, threshold_in_days: int = 30):
+        if not self.movie_list:
+            self.get_movies()
+        filtered_movies = []
+        count = 0
+        date_today = pendulum.DateTime.now()
+        threshold_date = date_today.subtract(days=threshold_in_days)
+        for movie in self.movie_list:
+            if pendulum.from_timestamp(int(movie['added_at'])) <= threshold_date and movie['play_count'] is None:
+                filtered_movies.append(movie)
+                count += 1
+        return filtered_movies
+
+    def get_imdb_guid(self, rating_key):
+        movie = self.get_movie_details(rating_key)
+        guid_string = movie.get('guid', None)
+        if guid_string:
+            guid = re.split('//|\?', guid_string)
+            return guid[1]
