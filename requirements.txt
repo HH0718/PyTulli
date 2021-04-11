@@ -1,0 +1,14 @@
+certifi==2020.12.5
+chardet==4.0.0
+distconfig3==1.0.1
+idna==2.10
+pendulum==2.1.2
+python-dateutil==2.8.1
+pytzdata==2020.1
+PyYAML==5.4.1
+requests==2.25.1
+six==1.15.0
+toml==0.10.2
+urllib3==1.26.4
+vyper-config==1.0.0
+watchdog==2.0.2
