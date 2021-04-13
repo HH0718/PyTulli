@@ -81,5 +81,5 @@ class Tautulli:
         movie = self.get_movie_details(rating_key)
         guid_string = movie.get('guid', None)
         if guid_string:
-            guid = re.split('//|\?', guid_string)
+            guid = re.split(r'//|\?', guid_string)
             return guid[1]
