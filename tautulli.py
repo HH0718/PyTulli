@@ -1,3 +1,5 @@
+"""A tautulli API wrapper."""
+
 import re
 
 import pendulum
@@ -5,6 +7,7 @@ import requests
 
 
 class Tautulli:
+    """A class for Tautulli's API calls."""
     config_passed = False
     movie_count = None
     movie_list = []
@@ -18,6 +21,8 @@ class Tautulli:
         self.get_movies() if get_movies else None
 
     def check_status(self):
+        """A method to verify config file settings are correct and verify a connection to Tautulli."""
+        # todo: create a simplified url string.
         # print(f'port: {self.port} API Key: "{self.api_key}", Route: "{self.api_route}"')
 
         payload = {"apikey": self.api_key, "cmd": "server_status"}
@@ -29,7 +34,8 @@ class Tautulli:
         else:
             self.config_passed = False
 
-    def get_movies(self):
+    def get_movies(self) -> list:
+        """This method simply retrieves all top level movie data from Tautulli."""
         if self.config_passed:
             payload = {
                 "apikey": self.api_key, "cmd": "get_library_media_info", "section_id": 1,
@@ -43,7 +49,8 @@ class Tautulli:
             [self.movie_list.append(movie) for movie in data]
             return self.movie_list
 
-    def get_movie_details(self, rating_key):
+    def get_movie_details(self, rating_key) -> dict:
+        """Gets metadata for specified movie using the movie's rating key from Tautulli"""
         if self.config_passed:
             payload = {
                 "apikey": self.api_key, "cmd": "get_metadata", "rating_key": rating_key}
@@ -53,7 +60,10 @@ class Tautulli:
             movie_data = request_json['response']['data']
             return movie_data
 
-    def get_ignored_movies(self, threshold_in_days: int = 30):
+    # todo: consider making this a PyTulli function.
+    def get_ignored_movies(self, threshold_in_days: int = 30) -> list:
+        """This method iterates through the class movie list for movies downloaded later than user specified
+        `threshold_in_days` and have a `null` `play_count` value."""
         if not self.movie_list:
             self.get_movies()
         filtered_movies = []
@@ -67,6 +77,7 @@ class Tautulli:
         return filtered_movies
 
     def get_imdb_guid(self, rating_key):
+        """Parses the imdbId variable string and strips it down to the ID only"""
         movie = self.get_movie_details(rating_key)
         guid_string = movie.get('guid', None)
         if guid_string:
