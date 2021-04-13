@@ -34,32 +34,6 @@ class Tautulli:
         else:
             self.config_passed = False
 
-    def get_movies(self) -> list:
-        """This method simply retrieves all top level movie data from Tautulli."""
-        if self.config_passed:
-            payload = {
-                "apikey": self.api_key, "cmd": "get_library_media_info", "section_id": 1,
-                "refresh": True, "length": 10000}
-
-            request = requests.request("get", f"{self.base_url}:{self.port}{self.api_route}", params=payload)
-
-            request_json = request.json()
-            self.movie_count = request_json['response']['data']['recordsFiltered']
-            data = request_json['response']['data']['data']
-            [self.movie_list.append(movie) for movie in data]
-            return self.movie_list
-
-    def get_movie_details(self, rating_key) -> dict:
-        """Gets metadata for specified movie using the movie's rating key from Tautulli"""
-        if self.config_passed:
-            payload = {
-                "apikey": self.api_key, "cmd": "get_metadata", "rating_key": rating_key}
-
-            request = requests.request("get", f"{self.base_url}:{self.port}{self.api_route}", params=payload)
-            request_json = request.json()
-            movie_data = request_json['response']['data']
-            return movie_data
-
     # todo: consider making this a PyTulli function.
     def get_ignored_movies(self, threshold_in_days: int = 30) -> list:
         """This method iterates through the class movie list for movies downloaded later than user specified
@@ -83,3 +57,29 @@ class Tautulli:
         if guid_string:
             guid = re.split(r'//|\?', guid_string)
             return guid[1]
+
+    def get_movie_details(self, rating_key) -> dict:
+        """Gets metadata for specified movie using the movie's rating key from Tautulli"""
+        if self.config_passed:
+            payload = {
+                "apikey": self.api_key, "cmd": "get_metadata", "rating_key": rating_key}
+
+            request = requests.request("get", f"{self.base_url}:{self.port}{self.api_route}", params=payload)
+            request_json = request.json()
+            movie_data = request_json['response']['data']
+            return movie_data
+
+    def get_movies(self) -> list:
+        """This method simply retrieves all top level movie data from Tautulli."""
+        if self.config_passed:
+            payload = {
+                "apikey": self.api_key, "cmd": "get_library_media_info", "section_id": 1,
+                "refresh": True, "length": 10000}
+
+            request = requests.request("get", f"{self.base_url}:{self.port}{self.api_route}", params=payload)
+
+            request_json = request.json()
+            self.movie_count = request_json['response']['data']['recordsFiltered']
+            data = request_json['response']['data']['data']
+            [self.movie_list.append(movie) for movie in data]
+            return self.movie_list
