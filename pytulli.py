@@ -5,9 +5,9 @@ be removed."""
 
 from vyper import v
 
-from plex import Plex
-from radarr import Radarr
-from tautulli import Tautulli
+from services.plex import Plex
+from services.radarr import Radarr
+from services.tautulli import Tautulli
 
 v.set_config_name("config")
 v.add_config_path('.')
