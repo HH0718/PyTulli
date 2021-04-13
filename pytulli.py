@@ -16,10 +16,10 @@ v.read_in_config()
 SERVER_SETTINGS = v.get('servers')
 BASE_URL = f"http://{SERVER_SETTINGS.get('base_ip')}"
 
+plex = Plex(v.get('servers.plex'), BASE_URL)
 radarr = Radarr(v.get('servers.radarr'), BASE_URL)
 # SONARR_SETTINGS = v.get('servers.sonarr')
 tautulli = Tautulli(v.get('servers.tautulli'), BASE_URL)
-plex = Plex(v.get('servers.plex'), BASE_URL)
 
 
 def delete_ignored_movies(threshold_in_days: int = 30) -> set:
